@@ -1,0 +1,21 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: google-github-actions/setup-gcloud@v1
+      with:
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
+        service_account_key: ${{ secrets.GCP_SA_KEY }}
+        export_default_credentials: true
+    - run: |
+        gcloud builds submit --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/bigquery-api --project ${{ secrets.GCP_PROJECT_ID }}
+    - run: |
+        gcloud run deploy bigquery-api --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/bigquery-api --platform managed --us-central-1 --allow-unauthenticated
